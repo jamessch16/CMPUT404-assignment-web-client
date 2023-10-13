@@ -96,7 +96,7 @@ class HTTPClient(object):
         # Send request
         request = f"GET {path} HTTP/1.1\r\nHost: {split_netloc[0]}\r\nConnection: close\r\n\r\n"
         self.sendall(request)
-        self.socket.shutdown()
+        #self.socket.shutdown()
 
         # Recieve and process
         response = self.recvall(self.socket)
