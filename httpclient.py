@@ -52,7 +52,7 @@ class HTTPClient(object):
 
     def get_headers(self,data):
         headers = data.split("\r\n\r\r")[0]
-        return headers.split()[1:]
+        return headers.split()
 
     def get_body(self, data):
         try:
