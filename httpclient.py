@@ -57,7 +57,10 @@ class HTTPClient(object):
     def get_body(self, data):
         try:
             content = data.split("\r\n\r\n")[1]
-            return content
+            if content: 
+                return content
+            else:
+                return ""
         except:
             return ""
     
@@ -135,6 +138,7 @@ class HTTPClient(object):
 
         # Send request
         request = f"GET {path} HTTP/1.1\r\nHost: {split_netloc[0]}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {content_len}\r\nConnection: close\r\n\r\n{content}"
+        print(f"request: {request}")
         self.sendall(request)
         #self.socket.shutdown()
 
@@ -145,8 +149,8 @@ class HTTPClient(object):
         headers = self.get_headers(response)
 
         print(f"Code: {code}\nHeaders: {headers}\nBody: {body}")
-
         self.close()
+
 
         return HTTPResponse(code, body)
 
