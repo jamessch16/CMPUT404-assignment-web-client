@@ -119,6 +119,7 @@ class HTTPClient(object):
             content_len = len(args)
         else:
             content = ""
+            content_len = 0
 
         scheme, netloc, path, query, fragment = parse.urlsplit(url)
         split_netloc = netloc.split(":")
@@ -134,7 +135,7 @@ class HTTPClient(object):
         # Send request
         request = f"GET {path} HTTP/1.1\r\nHost: {split_netloc[0]}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {content_len}\r\nConnection: close\r\n\r\n{content}"
         self.sendall(request)
-        self.socket.shutdown()
+        #self.socket.shutdown()
 
         # Recieve and process
         response = self.recvall(self.socket)
