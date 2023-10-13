@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 # coding: utf-8
-# Copyright 2016 Abram Hindle, https://github.com/tywtyw2002, and https://github.com/treedust
+# Copyright 2016 Abram Hindle, James Schaefer-Pham, https://github.com/tywtyw2002, and https://github.com/treedust
 # 
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import sys
 import socket
 import re
 # you may use urllib to encode data appropriately
-import urllib.parse
+import urllib.parse as parse
 
 def help():
     print("httpclient.py [GET/POST] [URL]\n")
@@ -35,19 +35,30 @@ class HTTPResponse(object):
 class HTTPClient(object):
     #def get_host_port(self,url):
 
+    def parse_url(url):
+        pass
+
     def connect(self, host, port):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.connect((host, port))
-        return None
 
     def get_code(self, data):
-        return None
+        try:
+            head = data.split("\r\n")[0]
+            code = head.split()[1]
+            return int(code)
+        except:
+            return 404
 
     def get_headers(self,data):
-        return None
+        headers = data.split("\r\n\r\r")[0]
+        return headers.split()[1:]
 
     def get_body(self, data):
-        return None
+        try:
+            content = data.split("\r\n\r\n")[1]
+        except:
+            return ""
     
     def sendall(self, data):
         self.socket.sendall(data.encode('utf-8'))
@@ -70,11 +81,71 @@ class HTTPClient(object):
     def GET(self, url, args=None):
         code = 500
         body = ""
+
+        scheme, netloc, path, query, fragment = parse.urlsplit(url)
+        split_netloc = netloc.split(":")
+
+        if not "/" in path:
+            path = "/"
+        
+        if len(split_netloc) == 2:
+            self.connect(split_netloc[0], split_netloc[1])
+        else:
+            self.connect(split_netloc[0], 80)
+
+        # Send request
+        request = f"GET {path} HTTP/1.1\r\nHost: {split_netloc[0]}\r\nConnection: close\r\n\r\n"
+        self.sendall(request)
+        self.socket.shutdown()
+
+        # Recieve and process
+        response = self.recvall(self.socket)
+        code = self.get_code(response)
+        body = self.get_body(response)
+        headers = self.get_headers(response)
+
+        print(f"Code: {code}\nHeaders: {headers}\nBody: {body}")
+
+        self.close()
+
         return HTTPResponse(code, body)
 
     def POST(self, url, args=None):
         code = 500
         body = ""
+
+        if args:
+            content = parse.urlencode(args)
+            content_len = len(args)
+        else:
+            content = ""
+
+        scheme, netloc, path, query, fragment = parse.urlsplit(url)
+        split_netloc = netloc.split(":")
+
+        if not "/" in path:
+            path = "/"
+        
+        if len(split_netloc) == 2:
+            self.connect(split_netloc[0], split_netloc[1])
+        else:
+            self.connect(split_netloc[0], 80)
+
+        # Send request
+        request = f"GET {path} HTTP/1.1\r\nHost: {split_netloc[0]}\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: {content_len}\r\nConnection: close\r\n\r\n{content}"
+        self.sendall(request)
+        self.socket.shutdown()
+
+        # Recieve and process
+        response = self.recvall(self.socket)
+        code = self.get_code(response)
+        body = self.get_body(response)
+        headers = self.get_headers(response)
+
+        print(f"Code: {code}\nHeaders: {headers}\nBody: {body}")
+
+        self.close()
+
         return HTTPResponse(code, body)
 
     def command(self, url, command="GET", args=None):
@@ -86,6 +157,11 @@ class HTTPClient(object):
 if __name__ == "__main__":
     client = HTTPClient()
     command = "GET"
+
+
+    # TODO HANDLE ARGS (probably for POSt)
+
+
     if (len(sys.argv) <= 1):
         help()
         sys.exit(1)
