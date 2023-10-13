@@ -57,6 +57,7 @@ class HTTPClient(object):
     def get_body(self, data):
         try:
             content = data.split("\r\n\r\n")[1]
+            return content
         except:
             return ""
     
