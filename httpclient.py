@@ -127,7 +127,7 @@ class HTTPClient(object):
             path = "/"
         
         if len(split_netloc) == 2:
-            self.connect(split_netloc[0], split_netloc[1])
+            self.connect(split_netloc[0], int(split_netloc[1]))
         else:
             self.connect(split_netloc[0], 80)
 
